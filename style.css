@@ -117,10 +117,11 @@ section {
 }
 
 #banner{
-	background: url('https: //github.com/anahmmacher/cyclistic_capstone_project/blob/main/images/Banner.jpg?raw=true')no-repeat;
+	background-image: url('https: //github.com/anahmmacher/cyclistic_capstone_project/blob/main/images/Banner.jpg?raw=true');
 		width: 100%;
 		height: auto;
 		background-size: contain;
+		background-repeat: no-repeat;
 }
 
 .icon{
