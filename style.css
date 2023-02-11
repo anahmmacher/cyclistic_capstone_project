@@ -117,7 +117,7 @@ section {
 }
 
 #banner{
-	background-image: url('/images/Banner.jpg');
+	background-image: url('../images/Banner.jpg');
 		width: 100%;
 		height: auto;
 		background-size: contain;
