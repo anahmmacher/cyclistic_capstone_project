@@ -117,7 +117,7 @@ section {
 }
 
 #banner{
-	background-image: url('images/Banner.jpg') no-repeat;
+	background-image: url('cyclistic_capstone_project/images/Banner.jpg') no-repeat;
 		width: 100%;
 		height: auto;
 		background-size: contain;
