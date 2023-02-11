@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Cyclistic Case Study - Notes</title>
+	<link rel="stylesheet" type="text/css" href="style.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/styles/default.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.2/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header>
+		<div id="banner"></div>
+		<nav>
+			<ul>
+				<li><a href="index.html">Home</a></li>
+				<li><a href="report.html">Report</a></li>
+				<li><a href="notes.html">Notes</a></li>
+				<li><a href="contact.html">Contact</a></li>
+			</ul>
+		</nav>
+	</header>
+	<div class="sidebar">
+		<ul>
+			<li><a href="#about">About</a></li>
+
+			<li><a href="#clean">Clean-up</a></li>
+			<li><a href="#code">Code</a></li>
+			<li><a href="#citations">Citations</li>
+		</ul>
+	</div>
+	<main>
+		<section class="title">
+			<h1>Work Notes and Code</h1>
+		</section>
+		<section id="about">
+			<h2>1. About</h2>
+			<p>This section will outline the steps taken to clean and prepare Cyclistic’s raw data of analysis, as well as citing
+			sources and showing code used to create data sets and visualizations. This report only covers data between the timeframe
+			of January 2022 and December 2022.</p>
+			<p>This scenario and company (Cyclistic) are fictional. Raw data comes from City of Chicago’s Divvy bicycle sharing
+			service. The license to use this public dataset can be found here:</p>
+			<a href="https://ride.divvybikes.com/data-license-agreement">https://ride.divvybikes.com/data-license-agreement</a>
+		</section>
+		<section id="clean">
+			<h2>2. Clean-up</h2>
+			<p>We begin first with downloading all the raw data from the following location:</p>
+			<a href="https://divvy-tripdata.s3.amazonaws.com/index.html">https://divvy-tripdata.s3.amazonaws.com/index.html</a>
+			<p>The data comes in CSV files and is divided into by Month. It is first cleaned individually by month using Microsoft
+			Excel due to ease of use and high visibility of data. The first step in cleaning the data is removing incomplete
+			records. The top row with column names is used to create a filter and all the records that have missing end/start point
+			are removed. Next, records that include the bike warehouse testing station were also removed. After this, the column
+			that contains the ride ID was conditionally formatted to change cell color in case of a duplicate value is found in the
+			column to be deleted, however, no duplicates were found. After this, two additional columns were created, “ride_length”
+			and “day_of_week” using formulas to calculate the time difference between start and end times of ride and the day of the
+			week that the ride took place in respectively. Once there is a column tracking the duration of each trip, the data is
+			then sorted from smallest to largest based on time and then filtered to show trip lengths less than or equal to 0
+			minutes which are then deleted since trip cannot have time lengths in negative values or 0. Following the last step,
+			trips with a duration of less than a minute are also deleted as they are likely errors as well (e.g. someone checked in
+			and check out a bike accidentally but counted as a trip). Lastly, certain stations had to be consolidated for
+			facilitating the sorting of the most popular stations by their location. Some locations had more than one station and
+			were differentiated by an asterisk at the end to signify that they were electric bike charging stations or if they were
+			public racks that were not officially provided by Divvy but still used by their system. By using find and replace, the
+			extra characters that separated these stations were removed so they could be tallied with the same named counterparts
+			for a clearer look based on location preferences. The Divvy bike data is clean, but the Historical Weather API found on
+			Open-Meteo still needs adjustments. Two columns were created to keep track of daylight time (sunset minus sunrise) and
+			average temperature (min + max / 2). With this, the data is cleaned in Excel and ready to move to R.</p>
+		</section>
+		<section id="code">
+			<h2>3. Source Code</h2>
+			<p>With Clean data, the next step is transforming it and creating data visualizations with R. R was chosen as the next step
+			because it has the capability to handle massive quantities of data that excel cannot and allows for a high degree of
+			control with respect to the data visualizations that it can produce. The majority of the work for this report was done
+			in R so all of this following sections of code will be in R. To first start, a few libraries need to be installed and
+			setup, as well as setting up working directory.</p>
+			<pre>
+			  <code class="r">
+		# Install the following packages
+
+		install.packages("tidyverse")
+		install.packages("lubridate")
+		install.packages("ggpubr")
+		install.packages("viridisLite")
+		install.packages("viridis")
+
+		# Run the following packages from library
+
+		library(tidyverse)
+		library(lubridate)
+		library(ggplot2)
+		library(ggpubr)
+		library(viridisLite)
+		library(viridis)
+
+		# Run the follwing option so that charts dont appear as scientific notation due to large numbers
+
+		options(scipen=999)
+
+		getwd()
+		# displays your working directory
+
+		setwd("C:/Users/acnah/OneDrive/Desktop/coursera_capstone/divvy_tripdata_unzipped/divvy-consolidated-2022")
+		# set working directory to where files are located 
+			  </code>
+			</pre>
+			<p>Next step is to import all the cleaned monthly record files and bind them into one large file.</p>
+			<pre>
+				<code class="r">
+		# import the clean data
+		
+		jan_22 <- read.csv("202201-divvy-tripdata.csv")
+		feb_22 <- read.csv("202202-divvy-tripdata.csv")
+		mar_22 <- read.csv("202203-divvy-tripdata.csv")
+		apr_22 <- read.csv("202204-divvy-tripdata.csv")
+		may_22 <- read.csv("202205-divvy-tripdata.csv")
+		jun_22 <- read.csv("202206-divvy-tripdata.csv")
+		jul_22 <- read.csv("202207-divvy-tripdata.csv")
+		aug_22 <- read.csv("202208-divvy-tripdata.csv")
+		sep_22 <- read.csv("202209-divvy-tripdata.csv")
+		oct_22 <- read.csv("202210-divvy-tripdata.csv")
+		nov_22 <- read.csv("202211-divvy-tripdata.csv")
+		dec_22 <- read.csv("202212-divvy-tripdata.csv")
+
+		# consolidate all into one data frame 
+		all_trips <- bind_rows( jan_22, feb_22, mar_22, apr_22, may_22, jun_22, jul_22, aug_22, sep_22, oct_22, nov_22, dec_22 )
+
+		# check the data structure with str
+		str(all_trips)
+		# upload Chicago weather data for later use
+		chicago_2022_weather <- read_csv("chicago_2022_weather_data.csv")
+				</code>
+			</pre>
+			<p>Some of the data columns that were imported were formatted as characters string objects, but we need them to be datetime
+			objects. The Lubridate library has functions to take the “started_at” & ended_at” columns and convert them to datetime
+			to make them easier to work with.</p>
+			<pre>
+				<code class="r">
+		# mdy_hm is part of the lubridate library, will take date in "mm/dd/yyyy hh:mm" format and return datetime obj
+		
+		all_trips$started_at <- mdy_hm(all_trips$started_at)
+		all_trips$ended_at <- mdy_hm(all_trips$endeded_at)
+				</code>
+			</pre>
+			<p>Now the ride_length character object wil be turned it into a numerical value for ease of use.</p>
+			<pre>
+				<code class="r">
+		# first, convert time string to hms object  
+		all_trips$ride_length <- hms(all_trips$ride_length)
+		
+		# then convert hms object to integer and divide by 60 to get time duration in minutes
+		all_trips$ride_length <- as.numeric(all_trips$ride_length)/60
+				</code>
+			</pre>
+				<p>modify the "day_of_week" column using the "started_at" column to convert numbers into name of day character strings, as well as
+					order them from Sunday to Saturday.</p> 
+			<pre>
+				<code class="r">
+		all_trips$day_of_week <- wday(all_trips$started_at, label=TRUE, abbr=FALSE)
+				</code>
+			</pre>
+				<p>
+					Create additional columns using the "started_at" datetime objects showing the date, month, week, and hour of a trip. 
+				</p>
+			<pre>
+				<code class="r">
+		# creates column with just the date
+		all_trips$date <- date(all_trips$started_at)
+
+		# creates column with just the month as number 
+		all_trips$month <- month(all_trips$started_at)
+		
+		# creates column with the week of the year 
+		all_trips$week <- week(all_trips$started_at) 
+		
+		#creates column with hour of trip 
+		all_trips$hour <- hour(all_trips$started_at)
+				</code>
+			</pre>
+				<p>
+					Ride dataset is ready for use, but before that, the chicago weather dataset needs to be adjusted for later use. Column names will be changed for readablity and ease
+					of use, as well as date column format will be changed to match with date column in the ride dataset to connect these two later. Lastly, two columns for average temperature 
+					and daylight time will be added as well.
+				</p>
+			<pre>
+				<code class="r">
+		# takes date, formated as a mm/dd/yy string and changes it to date object
+		chicago_2022_weather$date <- mdy(chicago_2022_weather$date) 
+
+		# the following column names are being changed
+		colnames(chicago_2022_weather)[2] <- "temp_max"
+		colnames(chicago_2022_weather)[3] <- "temp_min" 
+		colnames(chicago_2022_weather)[4] <- "sunrise"
+		colnames(chicago_2022_weather)[5] <- "sunset" 
+		colnames(chicago_2022_weather)[6] <- "precipitation"
+		colnames(chicago_2022_weather)[7] <- "windspeed_max" 
+
+		# the following code will create the avg_temp and daylight columns respectively
+		chicago_2022_weather$avg_temp <- apply(chicago_2022_weather[,2:3],1,mean)) 
+		chicago_2022_weather$daylight <- difftime(chicago_2022_weather$sunset, chicago_2022_weather$sunrise, units="mins" )
+				</code>
+			</pre>
+			<h3>3.1 Ride Length by Rider Type</h3>
+			<p>
+				first, create a copy of the dataset filtered by casual riders, then we create another copy of this set just showing the ride_length and member_casual columns.
+			</p>
+			<pre>
+				<code class="r">
+		# this filters and keeps all the records from the main dataframe that have 'casual' as the vaule in the member_casual column
+		c_data <- all_trips %>%
+		filter(member_casual == "casual")
+
+		# this removes all the columns except ride_length and member_casual
+		c_rl_data <- c_data %>%
+		select(ride_length, member_casual)
+				</code>
+			</pre>
+			<p>
+				The original data has some high value outliers that skew the graph greatly. So, in order take that into account, the 3rd subset will be filtered using quartiles and 
+				interquartile range to remove the outliers from the data.
+			</p>
+			<pre>
+				<code class="r">
+		# this finds the 1/4 and 3/4 quartiles in the ride_length numberset
+		c_quartiles <- quantile(c_rl_data$ride_length, probs=c(.25, .75), na.rm=TRUE)
+
+		# this saves the interquartile range of the ride_length numberset as a new variable
+		crl_IQR <- IQR(c_rl_data$ride_length,na.rm=TRUE)
+
+		# these give the points in the numberset where anything above and below these points is an outlier
+		Lower_c <- c_quartiles[1] - 1.5*crl_IQR
+		Upper_c <- c_quartiles[2] + 1.5*crl_IQR
+
+		# with the variables above, a outlier-free dataset is created and we can see a summary of its values.
+		clean_crl_data_V2 <- subset(c_rl_data, ride_length> Lower_c & ride_length < Upper_c)
+		summary(clean_crl_data_V2)
+				</code>
+			</pre>
+			<p>
+				repeat last two steps but filter for "member" instead of casual.
+			</p>
+			<pre>
+				<code class="r">
+		m_data <- all_trips %>%
+		filter(member_casual == "member")
+
+		m_rl_data <- m_data %>%
+		select(ride_length, member_casual)
+
+		m_quartiles <- quantile(m_rl_data$ride_length, probs=c(.25, .75),na.rm=TRUE)
+		mrl_IQR <- IQR(m_rl_data$ride_length, na.rm=TRUE) 
+		Lower_m <- m_quartiles[1] - 1.5*mrl_IQR 
+		Upper_m <- m_quartiles[2] + 1.5*mrl_IQR 
+
+		clean_mrl_data_V2 <- subset(m_rl_data, ride_length> Lower_m & ride_length < Upper_m) 
+		summary(clean_mrl_data_V2)
+				</code>
+			</pre>
+			<p>
+				Bind the two cleaned dataset into one for use in creating a data visualization.
+			</p>
+				<pre>
+					<code class="r">
+		clean_rl_data <- bind_rows( clean_mrl_data_V2, clean_crl_data_V2 )
+					</code>
+				</pre>
+			<p>
+				Finally, the dataset created in the last step will be used to make a boxplot measuring trip duration by rider type.
+			</p>
+				<pre>
+					<code class="r">
+		# invoke ggplot() to take clean_rl_data and bind x and y vaules and fill
+		cm_box <- ggplot(clean_rl_data, aes(x=member_casual, y=ride_length, fill=member_casual)) + 
+
+		# this will add error bar to the boxplot
+		stat_boxplot(geom='errorbar', width=0.3, position=position_dodge(width=0.75) ) + 
+
+		# this will render outliers invisible on plot
+		geom_boxplot(outlier.shape=NA) + 
+
+		# this will add a black, diamond-shaped mark on the boxplot to indicate mean value
+		stat_summary(fun="mean" , geom="point" , fill="black" , shape=23, size=4, show.legend=TRUE) + 
+
+		# this will add mean mark to legend
+		scale_shape_manual(name=NULL, values=c(23)) +
+
+		# this controls the scale on the y-axis
+		scale_y_continuous(expand=c(0,0), limits=c(0, 48), breaks=seq(0, 48, 2)) + 
+
+		# this adds/removes titles to the boxplot, axis and fill sections
+		labs(title="Ride Length by Rider Type" , x="" , y="Ride Length (Minutes)" , fill="" ) + 
+
+		# this makes the title font bold, size 16, and centered horizontailly. Legend title and x-axis text have been disabled as well.
+		theme(plot.title=element_text(size=16, face="bold" , hjust=0.5), legend.title=element_blank(), axis.text.x=element_blank())
+					</code>
+				</pre>
+				<p>
+					Execute cm_box object in r to generate the boxplot.
+				</p>
+				<pre>
+					<code class="r">
+		cm_box
+					</code>
+				</pre>
+			<h3>
+				3.2 Number of Rides by Days of week
+			</h3>
+			<p>
+				The next phase is creating a bar chart of the number of bike trips divided between days of the week and rider types.
+				creating a copy of the data set with the info we need will be the first step.
+			</p>
+				<pre>
+					<code class="r">
+		# save as new dataframe
+		c_vs_m_weekday <- all_trips %>%
+
+		#this groups the data by the day_of_week and member_casual columns
+		group_by(member_casual, day_of_week) %>%
+
+		#this counts the total amount of records by combination of day and rider type
+		summarise(number_of_rides =n() %>%
+
+		# data is arranged by day of the week
+		arrange(day_of_week)
+					</code>
+				</pre>
+				<p>
+					the previous data set is used to create a column graph showing what grouping the values found.
+				</p>
+				<pre>
+					<code class="r">
+		weekday_bar <- c_vs_m_weekday %>%
+		# execute ggplot and bind data to fill and axises to aesthetics.
+		ggplot(aes(x=day_of_week, y=number_of_rides, fill = member_casual)) +
+
+		# this creates a column plot and value of 'dodge' puts columns next to each other instead of overlapping.
+		geom_col(position = "dodge") +
+
+		# labs sets text for title, axises and fill values
+		labs(title="Number of Rides by Day of Week", x ="", y = "# of Rides", fill = "") +
+
+		# this makes the title font bold, size 16, and centered horizontailly. Legend title and x-axis text have been disabled as well.
+		theme(plot.title = element_text(size=16, face="bold", hjust=0.5))
+					</code>
+				</pre>
+				<p>
+					Execute weekday_bar object in r to generate the graph.
+				</p>
+				<pre>
+					<code class="r">
+		weekday_bar
+					</code>
+				</pre>
+			<h3>3.3 Number of Rides by Month</h3>
+			<p>
+				the next segment is similar to the previous one, in the sense that it is creating a bar graph and dividing by rider types, but this 
+				graph covers rides by month. the structure of the code is also similar, as it starts by creating a subset and grouping by month and member_casual.
+				But before that, the month column needs to be adjusted.
+			</p>
+				<pre>
+					<code class="r">
+		# change months from numeric to character
+		all_trips$months <- as.character(all_trips$months) 
+
+		# order months from 1 to 12.
+		all_trips$month <- ordered(all_trips$month, levels=c("1", "2" , "3", "4" , "5" , "6" , "7" , "8" , "9" , "10" , "11" , "12" ))
+
+		# create a subset that is ordered by month and grouped by both member_casual and month
+		c_vs_m_monthly <- all_trips %>%
+		group_by(member_casual, month) %>%
+		summarise(number_of_rides =n()) %>%
+		arrange(month)
+
+		# create a column graph similar to the last one made
+		monthly_bar <- c_vs_m_monthly %>%
+		ggplot(aes(x=month, y=number_of_rides, fill = member_casual)) +
+		geom_col(position = "dodge") +
+		labs(title="Number of Rides by Month - 2022", x="Months", y="# of rides", fill="") +
+		theme(plot.title = element_text(size=16, face="bold", hjust=0.5))
+
+		#finish by calling the new object to draw the graph
+		monthly_bar
+					</code>
+				</pre>
+			<h3>3.4 Member vs Casual Rides by Month and Weekday - 2022</h3>
+				<p>
+					This section of code covers creating two heat maps, each analysing member and causal rider trips by month and day.
+					The first step is to create a copy of the dataset with the information needed.
+				</p>
+				<pre>
+					<code class="r">
+		# Create a new dataframe that sums the number of rides by date and rider type
+		heat_map_data_m_vs_c <- all_trips %>%
+		
+		# this selects the date, week, day_of_week, and member_casual columns from original dataframe
+		select(
+		date,
+		week,
+		day_of_week,
+		member_casual,
+		) %>%
+		
+		# this groups the data by the date and member_casual columns
+		group_by(
+		member_casual,
+		date
+		) %>%
+		
+		# this will create a new column called numtrips that counts the number of rides based on the grouping	
+		mutate(
+		numtrips = n()
+		)
+
+					</code>
+				</pre>
+				<p>
+					next, this new dataframe will be used to create two more subsets, each filtered for one of the two values in the member_casual column.
+				</p>
+				<pre>
+					<code class="r">
+		# Create a dataframe for members only
+		m_filter_heat_map <- heat_map_data_m_vs_c %>%
+		filter(member_casual == "member")
+		
+		#Create a dataframe for casual riders only
+		c_filter_heat_map <- heat_map_data_m_vs_c %>%
+		filter(member_casual == "casual")
+					</code>
+				</pre>
+				<p>
+					Once these dataframes are available, the next step is to use each one to create a coresponding heat map.
+				</p>
+				<pre>
+					<code class="r">
+		# first up is creating the casual heat map
+		heat_cas <- c_filter_heat_map %>% 
+
+		# Use ggplot and bind week, day_of_week, and numtrips to aesthetics of x, y and fill respectively
+		ggplot(aes( x=week, y=day_of_week, fill=numtrips ) ) + 
+		
+		# Use the plasma color scheme option from the viridis library to color cells as a gradient based on fill value 
+		scale_fill_viridis( option="plasma" , direction=1, name="Number of Rides" ) + 
+
+		#	Use the geom_tile function to create the heat map grid with white cell borders
+		geom_tile( colour="white") + 
+
+		# Reverse the y-axis so the weekdays read top to bottom from Sunday to Saturday
+		scale_y_discrete( limits=rev ) + 
+
+		# This adds labels to the x-axis to show months of the year, evenly spaced out
+		scale_x_continuous( expand=c(0, 0), breaks=seq(1, 52, length=12), 
+		labels=c("Jan", "Feb" , "Mar" , "Apr" , "May" , "Jun" , "Jul" , "Aug" , "Sep" , "Oct" , "Nov" , "Dec" ) ) + 
+
+		# this adds a title to heat map and leaves axis tiltes blank
+		labs(title="Casual Riders") + 
+		
+		# This leaves axis tiltes blank
+		theme( axis.title=element_blank())
+					</code>
+				</pre>
+				<p>
+					Repeat the same steps above, except use the member dataframe to make the 2nd heat map.
+				</p>
+				<pre>
+					<code class="r">
+		heat_mem <- m_filter_heat_map %>%
+		ggplot(aes( x=week, y=day_of_week, fill=numtrips ) ) +
+		scale_fill_viridis( option="plasma" , direction=1, name="Number of Rides" ) +
+		geom_tile( colour="white") +
+		scale_y_discrete( limits=rev ) +
+		scale_x_continuous( expand=c(0, 0), breaks=seq(1, 52, length=12),
+		labels=c("Jan", "Feb" , "Mar" , "Apr" , "May" , "Jun" , "Jul" , "Aug" , "Sep" , "Oct" , "Nov" , "Dec" ) ) + 
+		labs(title="Member Riders") +
+		theme( axis.title=element_blank())
+					</code>
+				</pre>
+				<p>
+					Now, the final step is to combine both of these heat maps into one image with both graphs visible.
+				</p>
+				<pre>
+					<code class="r">
+		# Use ggarrange() to take the two heat maps and combine them, as one column with two rows, a legend that applies to both, and the legend located on the right side
+		complete_heat_map <- ggarrange( heat_mem, heat_cas, ncol=1, nrow=2, common.legend=TRUE, legend="right" )
+
+		# run the complete_heat_map object to generate the image
+		complete_heat_map
+					</code>
+				</pre>
+				<h3>3.5 Number of Rides by Hour of Day</h3>
+				<p>
+					In this section, the code chunks will walk through how to make a frequency line graph to show bike rides by rider type and hour of day.
+				</p>
+				<pre>
+					<code class="r">
+		# Selects the columns hour and member_casual from the dataframe all_trips and stores the resulting dataframe in
+		c_vs_m_hourly.
+		c_vs_m_hourly <- all_trips %>%
+		select(hour, member_casual)
+					</code>
+				</pre>
+				<p>
+					Next, the new dataframe will be put into the ggplot() function and invoke geom_freqpoly to make the graph
+				</p>
+				<pre>
+					<code class="r">
+		frequency_hour_plot <- c_vs_m_hourly %>%
+
+		# Plot the data in c_vs_m_hourly by mapping the hour to the x-axis and the member_casual column to the color
+		ggplot(aes(hour, colour = member_casual)) + 
+
+		# The geom_freqpoly function is used to create the frequency polygon graph, with 24 bins and a line size of 2
+		geom_freqpoly(bins = 24, size = 2 ) + 
+
+		# The x-axis is formatted using the scale_x_continuous function. Limits are set to the range of hours and
+		the labels are set to 24 hour time format
+		scale_x_continuous(
+		limits = c(0,23),
+		expand = c(0, 0),
+		breaks = seq(0, 23, 1),
+		labels = c("00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
+		"06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+		"12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+		"18:00", "19:00", "20:00", "21:00", "22:00", "23:00")) + 
+
+		# The y-axis is formatted using the scale_y_continuous function. The limits are set to the range of rides (0 to 300,000)
+		and the breaks are set to 50,000.
+		scale_y_continuous(
+		limits = c(0, 300000),
+		breaks = seq(0, 300000, 50000)) + 
+
+		# Labels are added to the plot, including the title, x-axis label, y-axis label, and a blank label for fill
+		labs(title="Number of Rides by Hour of Day",
+		x ="Hours", y = "# of Rides", fill = "") + 
+
+		# The size of the title is set to 16, and its font is made bold. The title of the legend is also blanked
+		theme(plot.title = element_text(size=16, face="bold", hjust=0.5),
+		legend.title = element_blank())
+					</code>
+				</pre>
+				<p>
+				With the frequency polygon graph saved to a object, invoke it to create the graph.
+				</p>
+				<pre>
+					<code class="r">
+		frequency_hour_plot
+					</code>
+				</pre>
+				<h3>3.6 Member vs Causal by Weather Impact</h3>
+				<p>
+					This section will cover creating multiple plot charts using the trip dataframe combined with the Chicago weather data, follwed by joining all four into one image. 
+					First step is to organize the source data in the format we need before combining it.
+				</p>
+				<pre>
+					<code class="r">
+		# Group weather data by date.
+		chi_2022_weather_organized <- chicago_2022_weather %>%
+		group_by(date)
+
+		# Create a data frame which tallies the daily number of trips for members
+		member_w <- all_trips %>%
+		group_by(date, member_casual) %>%
+		filter(member_casual == "member") %>%
+		summarise(numtrips_c = n()
+
+		# Create another data frame which adds up the number of trips each day for casual riders
+		casual_w <- all_trips %>%
+		group_by(date, member_casual) %>%
+		filter(member_casual == "casual") %>%
+		summarise(numtrips_c = n()
+					</code>
+				</pre>
+				<p>
+					Next, combine the dataframes unitl there is only one with all the data we need.
+				</p>
+				<pre>
+					<code class="r">
+		# Merge the casual and member data frames into one
+		cas_mem_w <- merge( casual_w, member_w, by="date" )
+
+		#Then merge the weather data and cas_mem_w data frames into one 
+		merged_w <- merge(chi_2022_weather_organized, cas_mem_w, by = "date") 
+					</code>
+				</pre>
+				<p>
+					With the merged_w dataframe, we will create the first of the weather plot charts that measure average temperature vs number of rides.
+				</p>
+				<pre>
+					<code class="r">
+		# First, plug in merged_w into ggplot with the avg temp as the y vaule
+		ave_temp_plot <- ggplot( merged_w, aes( y=avg_temp ) ) + 
+
+		#This creates the first set of points by binding their x value to the number of casual trips, with alpha value of 0.5 making it transparent
+		geom_point( aes( x=numtrips_c, color="Casual" ), alpha=0.5 ) +
+
+		#This creates the second set of points, but using the number of member trips
+		geom_point( aes( x=numtrips_m, color="Member" ), alpha=0.5 ) + 
+
+		# titles to the plot, x-axis and y-axis are added here
+		labs( title="Average Temperature vs Number of Rides", y="Average Temperature (F)" , x="# of Rides" ) + 
+
+		# the legend is removed for now and title is horizontailly centered
+		theme( legend.title=element_blank(), plot.title=element_text(hjust=0.5) )
+					</code>
+				</pre>
+				<p>
+					Next, we'll use a similar setup to create the daylight plot.
+				</p>
+				<pre>
+					<code class="r">
+		# this plot is almost the same as the last one except for measuring a different value, daylight
+		daylight_plot <- ggplot( merged_w, aes( y=daylight ) ) + 
+		geom_point( aes( x=numtrips_c, color="Casual" ), alpha=0.5 ) +
+		geom_point( aes( x=numtrips_m, color="Member" , ), alpha=0.5 ) + 
+		labs( title="Daylight vs number of rides" , y="Daylight time (minutes)" , x="# of rides" ) + 
+		theme( legend.title=element_blank(), plot.title=element_text(hjust=0.5) )
+					</code>
+				</pre>
+				<p>
+					Repeat process for precipitation and windspeed respectively.
+				</p>
+				<pre>
+					<code class="r">
+		# this creates the plot for precipitation
+		precipitation_plot <- ggplot( merged_w, aes( y=precipitation ) ) + 
+		geom_point( aes( x=numtrips_c, color="Casual" ), alpha=0.5 ) +
+		geom_point( aes( x=numtrips_m, color="Member" , ), alpha=0.5 ) + 
+		labs( title="Precipitation vs number of rides" , y="Precipitation (mm)" , x="# of rides" ) + 
+		theme( legend.title=element_blank(), plot.title=element_text(hjust=0.5) )
+
+		# this creates the plot for windspeed
+		windspeed_plot <- ggplot( merged_w, aes( y=windspeed_max ) ) + 
+		geom_point( aes( x=numtrips_c, color="Casual" ), alpha=0.5 ) +
+		geom_point( aes( x=numtrips_m, color="Member" , ), alpha=0.5 ) + 
+		labs( title="Max windspeed in day vs number of rides" , y="Max wind speed (Km/h)" , x="# of rides" ) + 
+		theme( legend.title=element_blank(), plot.title=element_text(hjust=0.5) )
+					</code>
+				</pre>
+				<p>
+					With all four plots created, they can be then combined into one image like so.
+				</p>
+				<pre>
+					<code class="r">
+		# this new plot with be 2 x 2 with a common legend at the bottom
+		all_weather_plot <- ggarrange( ave_temp_plot, daylight_plot, windspeed_plot, precipitation_plot, ncol=2, nrow=2,
+		common.legend=TRUE, legend="bottom" )
+
+		# lastly, invoke the object all_weather_plot to create the image
+		all_weather_plot
+					</code>
+				</pre>
+				<h3>3.7 Popular Bike Routes by Casual and Member Riders</h3>
+					<p>
+						Most of the work on these last two sections was done in Tableau. the base data used there was genereated in r and then exported as a CSV file. 
+						The following segments show how that base data was set up and exported. First, the main dataframe used in this project 
+					</p>
+					<pre>
+						<code class="r">
+		# Create a new dataframe using all_trips
+		new_route_count <- all_trips %>%
+
+		# Group by pairs of start & end stations
+		group_by(start_station_name,end_station_name) %>%
+
+		# Split the sum by casual and member trips
+		summarise_at("member_casual", funs(sum(member_casual == "member"), sum(member_casual == "casual")))
+		
+		# Rename columns to keep track of what is what
+		colnames(new_route_count)[3] <- "member_count" 
+		colnames(new_route_count)[4] <- "casual_count" 
+
+		# create a new column which is the total sum of all trips by station pairs
+		new_route_count <- new_route_count %>%
+		mutate(total_count = member_count + casual_count)
+		
+		# create a new column which will combine the start and end point as a route name
+		new_route_count <- new_route_count %>%
+		mutate(route_name = paste0(start_station_name, " to ", end_station_name))
+						</code>
+					</pre>
+					<p>
+						Export the dataframe as a CSV to be cleaned up in Excel and subequently uploaded to Tableau
+					</p>
+					<pre>
+						<code class="r">
+		# create a csv file in current work directory
+		write.csv(new_route_count,"2022_new_route_count.csv", col.names = TRUE, row.names = FALSE)
+						</code>
+					</pre>
+					<p>
+						Open CSV file in Excel to use sort and filter functions to better view data. 
+						As trimed as it is, the exported file is still larger than what is needed for this Tableau dashboard. 
+						rows were sorted by total count in descending order and the top 50 records were copied and saved in a separte file. 
+						It is this smaller file that is then uploaded into Tableau to create the base sheet for the dashboard.
+					</p>
+					<p>
+						Once in Tableau, the data neads to be set up and updated in the Data source tab. Next, work can commence in the sheet tab with binding data to visual values. 
+						Bind 'Route Names' to the rows section, and 'Measure Values'(SUM of causal, SUM of member) to columns. 'Measure Names' are then bound to color and filter.
+						Lastly, The total sum is added to the tooltip to show the values of the hovered section vs the total value.
+					</p>
+				<h3>3.8 Most Popular Bike Stations from Top Routes</h3>
+				<p>
+					To finish this section, use the new_route_count CSV file in Excel and to create 3 sets of data that will be combined in Tableau to form a map of top popular bike stations. 
+					First, create seaparate tabs and label them 'casual', 'member', & 'overall'. 
+					Next, sort and filter the main data set to copy and paste the top 100 start and end station pairs by causal, members and overall in their respective tabs.
+					Combine the end and start station columns into one single column, and use the pivot table to return the names of the stations and times they appear in the column.
+					Copy this information back into their sheets, replacing the end and start station columns. Next Use the Original all_trips file and filter by the top stations.
+					The all_trips data set contains latitude & longitude coordinates to indicate where these stations are. Copy and paste the coordinates to the corresponding station name. 
+					By now, there should be 3 tabs for each subset, with columns for station name, times it appears in top 100 trips, latitude, and longitude. 
+					Import these data sets into Tableau to being the next phase.
+				</p>
+				<p>
+					With the Data in Tableau, bind the three sheets as a union. This will let Tableu know to that they will all be part of the same visualization.
+					in the sheet tab, add the latitude and longitude values to the rows and columns sections respectively. Bind the Rider type to 'color' and 'filters', sum of count to 'size' and stations to 'details'.
+					This creates a bubble map that can be filtered by each rider type or overall numbers. Lastly this map is added to a dashboard and combined with a legend that can function as a filter.
+					Instructions on that last step can be found <a href="https://kb.tableau.com/articles/HowTo/how-to-use-legends-as-filters-in-a-dashboard">here.</a>
+				</p>
+		</section>
+		<section id="citations">
+			<h2>4. Citations</h2>
+			<ul id="cited">
+			<li><span>Chicago travel guide | U.S. News Travel.</span>(n.d.). Retrieved February 10, 2023, from https://travel.usnews.com/chicago_il/</l1> 
+			<li>Burrows, M. (2021, October 8).<span> May 17 is National Bike to Work Day.</span> Census.gov. Retrieved February 1, 2023, from
+			https://www.census.gov/library/stories/2019/05/younger-workers-in-cities-more-likely-to-bike-to-work.html</li>
+			<li><span>Data.org.</span> Climate. (n.d.). Retrieved February 2, 2023, from
+			https://en.climate-data.org/north-america/united-states-of-america/illinois/chicago-1574/</li>
+			<li><span>Peel, I.</span>Peel, I. (2021, September). Cyclistic Case Study. Retrieved January 15, 2023, from
+			https://isabellapeel.github.io/Cyclistic_Case_Study-Divvy_Bikes/index.html</li>
+			<li><span>How to use legends as filters in a dashboard: Tableau Software</span>. How To Use Legends As Filters In A Dashboard | Tableau
+			Software. (n.d.). Retrieved January 15, 2023, from
+			https://kb.tableau.com/articles/HowTo/how-to-use-legends-as-filters-in-a-dashboard</li>
+			<li><span>Creating a Stacked Bar Chart Using Multiple Measures: Tableau Software.</span>Creating a Stacked Bar Chart Using Multiple Measures | Tableau Software. (n.d.). Retrieved January 15, 2023, from
+			https://kb.tableau.com/articles/howto/stacked-bar-chart-multiple-measures</li>
+			</ul>
+		</section>
+	</main>
+</body>
+
+</html>

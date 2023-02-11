@@ -1,0 +1,133 @@
+a, a:hover, a:focus, a:active {
+	text-decoration: none;
+	color: inherit;
+}
+
+body {
+	font-family: Arial, sans-serif;
+}
+
+span {
+	font-style: italic;
+}
+
+header nav ul {
+	list-style: none;
+	display: flex;
+	justify-content:left ;
+	padding: 5px;
+	margin: 0;
+	background-color: #333;
+	border-radius: 5px;
+}
+
+header nav ul li {
+	padding-left: 50px;
+	padding-right: 50px;
+}
+
+header nav a {
+	display: block;
+	padding: 1em;
+	color: white;
+	text-decoration: none;
+}
+
+header nav a:hover {
+	background-color: #444;
+}
+
+main {
+		margin-left: 195px;
+			font-size: 18px;
+}
+
+
+
+section {
+	padding: 2em;
+}
+
+.sidebar {
+	height: 210px;
+	width: 195px;
+	position: fixed;
+	top: 355px;
+	left: 10px;
+	padding-top: 20px;
+	background-color: rgb(143, 160, 165);
+	border-radius: 5px;
+}
+
+.sidebar ul li {
+	padding: 10px;
+	font-size: 16px;
+	margin-left: 15px;
+}
+
+.sidebar ul li:hover {
+	background-color: rgba(0, 0, 0, 0.3);
+	color: white;
+}
+
+.sidebar ul {
+ padding-left: 20px;
+ display: flex;
+ flex-direction: column;
+ justify-content: space-evenly;
+ list-style: none
+}
+
+#cited li {
+	padding: 3px;
+}
+
+.contact-list{
+	background-color: rgb(143, 160, 165);
+	border-radius: 5px;
+	width: 40%;
+}
+
+.contact-list ul{
+	list-style: none;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	width: 83%;
+}
+
+.contact-list ul li{
+	padding: 8px;
+	margin: 10px;
+	background-color: ghostwhite;
+	border-radius: 5px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	width: 99%;
+	justify-content: center;
+
+}
+
+.headshot{
+	border-radius: 50%;
+}
+
+#banner{
+	background-image: url('images/Banner.jpg') no-repeat;
+		width: 100%;
+		height: auto;
+		background-size: contain;
+}
+
+.icon{
+	margin-right: 15px;
+}
+
+.icon-span{
+	font-size: 26px;
+	margin-right: 10px;
+}
