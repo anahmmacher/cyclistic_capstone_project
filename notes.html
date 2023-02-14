@@ -49,10 +49,10 @@
 		</section>
 		<section id="about">
 			<h2>1. About</h2>
-			<p>This section will outline the steps taken to clean and prepare Cyclistic’s raw data of analysis, as well as citing
-			sources and showing code used to create data sets and visualizations. This report only covers data between the timeframe
-			of January 2022 and December 2022.</p>
-			<p>This scenario and company (Cyclistic) are fictional. Raw data comes from City of Chicago’s Divvy bicycle sharing
+			<p>This section will outline the steps taken to clean and prepare Cyclistic's raw data of analysis, as well as cite sources
+			and show code used to create data sets and visualizations. This report only covers data between the timeframe of January
+			2022 and December 2022.</p>
+			<p>This scenario and company (Cyclistic) are fictional. Raw data comes from the City of Chicago's Divvy bicycle-sharing
 			service. The license to use this public dataset can be found here:</p>
 			<a href="https://ride.divvybikes.com/data-license-agreement">https://ride.divvybikes.com/data-license-agreement</a>
 		</section>
@@ -60,33 +60,33 @@
 			<h2>2. Clean-up</h2>
 			<p>We begin first with downloading all the raw data from the following location:</p>
 			<a href="https://divvy-tripdata.s3.amazonaws.com/index.html">https://divvy-tripdata.s3.amazonaws.com/index.html</a>
-			<p>The data comes in CSV files and is divided into by Month. It is first cleaned individually by month using Microsoft
-			Excel due to ease of use and high visibility of data. The first step in cleaning the data is removing incomplete
-			records. The top row with column names is used to create a filter and all the records that have missing end/start point
-			are removed. Next, records that include the bike warehouse testing station were also removed. After this, the column
-			that contains the ride ID was conditionally formatted to change cell color in case of a duplicate value is found in the
-			column to be deleted, however, no duplicates were found. After this, two additional columns were created, “ride_length”
-			and “day_of_week” using formulas to calculate the time difference between start and end times of ride and the day of the
-			week that the ride took place in respectively. Once there is a column tracking the duration of each trip, the data is
+			<p>The data comes in CSV files and is divided by Month. It is first cleaned individually by month using Microsoft Excel due
+			to ease of use and high visibility of data. The first step in cleaning the data is removing incomplete records. The top
+			row with column names is used to create a filter and all the records that have the missing end/start points are removed.
+			Next, records that include the bike warehouse testing station were also removed. After this, the column that contains
+			the ride ID was conditionally formatted to change cell color in case of a duplicate value is found in the column to be
+			deleted, however, no duplicates were found. After this, two additional columns were created, "ride_length" and
+			"day_of_week" using formulas to calculate the time difference between the start and end times of a ride and the day of
+			the week that the ride took place respectively. Once there is a column tracking the duration of each trip, the data is
 			then sorted from smallest to largest based on time and then filtered to show trip lengths less than or equal to 0
-			minutes which are then deleted since trip cannot have time lengths in negative values or 0. Following the last step,
+			minutes which are then deleted since the trip cannot have time lengths in negative values or 0. Following the last step,
 			trips with a duration of less than a minute are also deleted as they are likely errors as well (e.g. someone checked in
 			and check out a bike accidentally but counted as a trip). Lastly, certain stations had to be consolidated for
 			facilitating the sorting of the most popular stations by their location. Some locations had more than one station and
 			were differentiated by an asterisk at the end to signify that they were electric bike charging stations or if they were
-			public racks that were not officially provided by Divvy but still used by their system. By using find and replace, the
-			extra characters that separated these stations were removed so they could be tallied with the same named counterparts
-			for a clearer look based on location preferences. The Divvy bike data is clean, but the Historical Weather API found on
-			Open-Meteo still needs adjustments. Two columns were created to keep track of daylight time (sunset minus sunrise) and
-			average temperature (min + max / 2). With this, the data is cleaned in Excel and ready to move to R.</p>
+			public racks that were not officially provided by Divvy but were still used by their system. By using find and replace,
+			the extra characters that separated these stations were removed so they could be tallied with the same named
+			counterparts for a clearer look based on location preferences. The Divvy bike data is clean, but the Historical Weather
+			API found on Open-Meteo still needs adjustments. Two columns were created to keep track of daylight time (sunset minus
+			sunrise) and average temperature (min + max / 2). With this, the data is cleaned in Excel and ready to move to R.</p>
 		</section>
 		<section id="code">
 			<h2>3. Source Code</h2>
 			<p>With Clean data, the next step is transforming it and creating data visualizations with R. R was chosen as the next step
-			because it has the capability to handle massive quantities of data that excel cannot and allows for a high degree of
-			control with respect to the data visualizations that it can produce. The majority of the work for this report was done
-			in R so all of this following sections of code will be in R. To first start, a few libraries need to be installed and
-			setup, as well as setting up working directory.</p>
+			because it can handle massive quantities of data that excel cannot and allows for a high degree of control concerning
+			the data visualizations that it can produce. Most of the work for this report was done in R so all of the following
+			sections of code will be in R. To first start, a few libraries need to be installed and set up, as well as setting up a
+			working directory.</p>
 			<pre>
 			  <code class="r">
 		# Install the following packages
@@ -117,7 +117,7 @@
 		# set working directory to where files are located 
 			  </code>
 			</pre>
-			<p>Next step is to import all the cleaned monthly record files and bind them into one large file.</p>
+			<p>The next step is to import all the cleaned monthly record files and bind them into one large file.</p>
 			<pre>
 				<code class="r">
 		# import the clean data
@@ -144,8 +144,8 @@
 		chicago_2022_weather <- read_csv("chicago_2022_weather_data.csv")
 				</code>
 			</pre>
-			<p>Some of the data columns that were imported were formatted as characters string objects, but we need them to be datetime
-			objects. The Lubridate library has functions to take the “started_at” & ended_at” columns and convert them to datetime
+			<p>Some of the data columns that were imported were formatted as characters string objects, but we need them to be DateTime
+			objects. The Lubridate library has functions to take the "started_at" & ended_at" columns and convert them to DateTime
 			to make them easier to work with.</p>
 			<pre>
 				<code class="r">
@@ -155,7 +155,7 @@
 		all_trips$ended_at <- mdy_hm(all_trips$endeded_at)
 				</code>
 			</pre>
-			<p>Now the ride_length character object wil be turned it into a numerical value for ease of use.</p>
+			<p>Now the ride_length character object will be turned into a numerical value for ease of use.</p>
 			<pre>
 				<code class="r">
 		# first, convert time string to hms object  
@@ -165,15 +165,15 @@
 		all_trips$ride_length <- as.numeric(all_trips$ride_length)/60
 				</code>
 			</pre>
-				<p>modify the "day_of_week" column using the "started_at" column to convert numbers into name of day character strings, as well as
-					order them from Sunday to Saturday.</p> 
+				<p>Modify the "day_of_week" column using the "started_at" column to convert numbers into name-of-day character strings, as
+				well as order them from Sunday to Saturday.</p> 
 			<pre>
 				<code class="r">
 		all_trips$day_of_week <- wday(all_trips$started_at, label=TRUE, abbr=FALSE)
 				</code>
 			</pre>
 				<p>
-					Create additional columns using the "started_at" datetime objects showing the date, month, week, and hour of a trip. 
+					Create additional columns using the "started_at" DateTime objects showing the date, month, week, and hour of a trip. 
 				</p>
 			<pre>
 				<code class="r">
@@ -191,9 +191,10 @@
 				</code>
 			</pre>
 				<p>
-					Ride dataset is ready for use, but before that, the chicago weather dataset needs to be adjusted for later use. Column names will be changed for readablity and ease
-					of use, as well as date column format will be changed to match with date column in the ride dataset to connect these two later. Lastly, two columns for average temperature 
-					and daylight time will be added as well.
+					The ride dataset is ready for use, but before that, the Chicago weather dataset needs to be adjusted for later use.
+					Column names will be changed for readability and ease of use, as well as date column format will be changed to match the
+					date column in the ride dataset to connect these two later. Lastly, two columns for average temperature and daylight
+					time will be added as well.
 				</p>
 			<pre>
 				<code class="r">
@@ -215,7 +216,7 @@
 			</pre>
 			<h3>3.1 Ride Length by Rider Type</h3>
 			<p>
-				first, create a copy of the dataset filtered by casual riders, then we create another copy of this set just showing the ride_length and member_casual columns.
+				First, create a copy of the dataset filtered by casual riders, then create another copy of this set just showing the ride_length and member_casual columns.
 			</p>
 			<pre>
 				<code class="r">
@@ -229,8 +230,8 @@
 				</code>
 			</pre>
 			<p>
-				The original data has some high value outliers that skew the graph greatly. So, in order take that into account, the 3rd subset will be filtered using quartiles and 
-				interquartile range to remove the outliers from the data.
+				The original data has some high-value outliers that skew the graph greatly. So, to take that into account, the 3rd
+				subset will be filtered using quartiles and an interquartile range to remove the outliers from the data.
 			</p>
 			<pre>
 				<code class="r">
@@ -250,7 +251,7 @@
 				</code>
 			</pre>
 			<p>
-				repeat last two steps but filter for "member" instead of casual.
+				Repeat the last two steps but filter for "member" instead of casual.
 			</p>
 			<pre>
 				<code class="r">
@@ -308,7 +309,7 @@
 					</code>
 				</pre>
 				<p>
-					Execute cm_box object in r to generate the boxplot.
+					Execute the cm_box object in r to generate the boxplot.
 				</p>
 				<pre>
 					<code class="r">
@@ -338,7 +339,7 @@
 					</code>
 				</pre>
 				<p>
-					the previous data set is used to create a column graph showing what grouping the values found.
+					The previous data set is used to create a column graph showing what grouping the values found.
 				</p>
 				<pre>
 					<code class="r">
@@ -357,7 +358,7 @@
 					</code>
 				</pre>
 				<p>
-					Execute weekday_bar object in r to generate the graph.
+					Execute the weekday_bar object in r to generate the graph.
 				</p>
 				<pre>
 					<code class="r">
@@ -366,9 +367,8 @@
 				</pre>
 			<h3>3.3 Number of Rides by Month</h3>
 			<p>
-				the next segment is similar to the previous one, in the sense that it is creating a bar graph and dividing by rider types, but this 
-				graph covers rides by month. the structure of the code is also similar, as it starts by creating a subset and grouping by month and member_casual.
-				But before that, the month column needs to be adjusted.
+				The next phase is creating a bar chart of the number of bike trips divided between days of the week and rider types.
+				creating a copy of the data set with the info we need will be the first step.
 			</p>
 				<pre>
 					<code class="r">
@@ -397,7 +397,7 @@
 				</pre>
 			<h3>3.4 Member vs Casual Rides by Month and Weekday - 2022</h3>
 				<p>
-					This section of code covers creating two heat maps, each analysing member and causal rider trips by month and day.
+					This section of code covers creating two heatmaps, each analyzing member and causal rider trips by month and day.
 					The first step is to create a copy of the dataset with the information needed.
 				</p>
 				<pre>
@@ -427,7 +427,8 @@
 					</code>
 				</pre>
 				<p>
-					next, this new dataframe will be used to create two more subsets, each filtered for one of the two values in the member_casual column.
+					Next, this new data frame will be used to create two more subsets, each filtered for one of the two values in the
+					member_casual column.
 				</p>
 				<pre>
 					<code class="r">
@@ -441,7 +442,7 @@
 					</code>
 				</pre>
 				<p>
-					Once these dataframes are available, the next step is to use each one to create a coresponding heat map.
+					Once these dataframes are available, the next step is to use each one to create a corresponding heatmap.
 				</p>
 				<pre>
 					<code class="r">
@@ -472,7 +473,7 @@
 					</code>
 				</pre>
 				<p>
-					Repeat the same steps above, except use the member dataframe to make the 2nd heat map.
+					Repeat the same steps above, except use the member data frame to make the 2nd heatmap.
 				</p>
 				<pre>
 					<code class="r">
@@ -501,7 +502,7 @@
 				</pre>
 				<h3>3.5 Number of Rides by Hour of Day</h3>
 				<p>
-					In this section, the code chunks will walk through how to make a frequency line graph to show bike rides by rider type and hour of day.
+					In this section, the code chunks will walk through how to make a frequency line graph to show bike rides by rider type and the hour of day.
 				</p>
 				<pre>
 					<code class="r">
@@ -512,7 +513,7 @@
 					</code>
 				</pre>
 				<p>
-					Next, the new dataframe will be put into the ggplot() function and invoke geom_freqpoly to make the graph
+					Next, the new data frame will be put into the ggplot() function and invoke geom_freqpoly to make the graph.
 				</p>
 				<pre>
 					<code class="r">
@@ -560,8 +561,8 @@
 				</pre>
 				<h3>3.6 Member vs Causal by Weather Impact</h3>
 				<p>
-					This section will cover creating multiple plot charts using the trip dataframe combined with the Chicago weather data, follwed by joining all four into one image. 
-					First step is to organize the source data in the format we need before combining it.
+					This section will cover creating multiple plot charts using the trip data frame combined with the Chicago weather data, follwed by joining all four into one image. 
+					The first step is to organize the source data in the format we need before combining it.
 				</p>
 				<pre>
 					<code class="r">
@@ -583,7 +584,7 @@
 					</code>
 				</pre>
 				<p>
-					Next, combine the dataframes unitl there is only one with all the data we need.
+					Next, combine the data frames until there is only one with all the data we need.
 				</p>
 				<pre>
 					<code class="r">
@@ -649,7 +650,7 @@
 					</code>
 				</pre>
 				<p>
-					With all four plots created, they can be then combined into one image like so.
+					With all four plots created, they can be combined into one image like so.
 				</p>
 				<pre>
 					<code class="r">
@@ -663,8 +664,9 @@
 				</pre>
 				<h3>3.7 Popular Bike Routes by Casual and Member Riders</h3>
 					<p>
-						Most of the work on these last two sections was done in Tableau. the base data used there was genereated in r and then exported as a CSV file. 
-						The following segments show how that base data was set up and exported. First, the main dataframe used in this project 
+						Most of the work on these last two sections was done in Tableau. the base data used there was generated in r and then
+						exported as a CSV file. The following segments show how that base data was set up and exported. First, the main data
+						frame was used in this project.
 					</p>
 					<pre>
 						<code class="r">
@@ -691,7 +693,7 @@
 						</code>
 					</pre>
 					<p>
-						Export the dataframe as a CSV to be cleaned up in Excel and subequently uploaded to Tableau
+						Export the data frame as a CSV to be cleaned up in Excel and subsequently uploaded to Tableau.
 					</p>
 					<pre>
 						<code class="r">
@@ -700,38 +702,42 @@
 						</code>
 					</pre>
 					<p>
-						Open CSV file in Excel to use sort and filter functions to better view data. 
-						As trimed as it is, the exported file is still larger than what is needed for this Tableau dashboard. 
-						rows were sorted by total count in descending order and the top 50 records were copied and saved in a separte file. 
-						It is this smaller file that is then uploaded into Tableau to create the base sheet for the dashboard.
+						Open the CSV file in Excel to use sort and filter functions to better view data. As trimmed as it is, the exported file
+						is still larger than what is needed for this Tableau dashboard. rows were sorted by total count in descending order and
+						the top 50 records were copied and saved in a separate file. It is this smaller file that is then uploaded into Tableau
+						to create the base sheet for the dashboard.
 					</p>
 					<p>
-						Once in Tableau, the data neads to be set up and updated in the Data source tab. Next, work can commence in the sheet tab with binding data to visual values. 
-						Bind 'Route Names' to the rows section, and 'Measure Values'(SUM of causal, SUM of member) to columns. 'Measure Names' are then bound to color and filter.
-						Lastly, The total sum is added to the tooltip to show the values of the hovered section vs the total value.
+						Once in Tableau, the data needs to be set up and updated in the Data Source tab. Next, work can commence in the sheet
+						tab with binding data to visual values. Bind 'Route Names' to the rows section, and 'Measure Values'(SUM of causal, SUM
+						of member) to columns. 'Measure Names' are then bound to color and filter. Lastly, The total sum is added to the tooltip
+						to show the values of the hovered section vs the total value.
 					</p>
 				<h3>3.8 Most Popular Bike Stations from Top Routes</h3>
 				<p>
-					To finish this section, use the new_route_count CSV file in Excel and to create 3 sets of data that will be combined in Tableau to form a map of top popular bike stations. 
-					First, create seaparate tabs and label them 'casual', 'member', & 'overall'. 
-					Next, sort and filter the main data set to copy and paste the top 100 start and end station pairs by causal, members and overall in their respective tabs.
-					Combine the end and start station columns into one single column, and use the pivot table to return the names of the stations and times they appear in the column.
-					Copy this information back into their sheets, replacing the end and start station columns. Next Use the Original all_trips file and filter by the top stations.
-					The all_trips data set contains latitude & longitude coordinates to indicate where these stations are. Copy and paste the coordinates to the corresponding station name. 
-					By now, there should be 3 tabs for each subset, with columns for station name, times it appears in top 100 trips, latitude, and longitude. 
-					Import these data sets into Tableau to being the next phase.
+					To finish this section, use the new_route_count CSV file in Excel to create 3 sets of data that will be combined in
+					Tableau to form a map of the top popular bike stations. First, create separate tabs and label them 'casual', 'member', &
+					'overall'. Next, sort and filter the main data set to copy and paste the top 100 start and end station pairs by causal,
+					members, and overall in their respective tabs. Combine the end and start station columns into one single column, and use
+					the pivot table to return the names of the stations and times they appear in the column. Copy this information back into
+					their sheets, replacing the end and start station columns. Next Use the Original all_trips file and filter by the top
+					stations. The all_trips data set contains latitude & longitude coordinates to indicate where these stations are. Copy
+					and paste the coordinates to the corresponding station name. By now, there should be 3 tabs for each subset, with
+					columns for station name, times it appears in the top 100 trips, latitude, and longitude. Import these data sets into
+					Tableau to being the next phase.
 				</p>
 				<p>
-					With the Data in Tableau, bind the three sheets as a union. This will let Tableu know to that they will all be part of the same visualization.
-					in the sheet tab, add the latitude and longitude values to the rows and columns sections respectively. Bind the Rider type to 'color' and 'filters', sum of count to 'size' and stations to 'details'.
-					This creates a bubble map that can be filtered by each rider type or overall numbers. Lastly this map is added to a dashboard and combined with a legend that can function as a filter.
-					Instructions on that last step can be found <a href="https://kb.tableau.com/articles/HowTo/how-to-use-legends-as-filters-in-a-dashboard">here.</a>
+					With the Data in Tableau, bind the three sheets as a union. This will let Tableau know that they will all be part of the
+					same visualization. in the sheet tab, add the latitude and longitude values to the rows and columns sections
+					respectively. Bind the Rider type to 'color' and 'filters', the sum of count to 'size', and stations to 'details'. This
+					creates a bubble map that can be filtered by each rider type or overall number. Lastly, this map is added to a dashboard
+					and combined with a legend that can function as a filter. Instructions on that last step can be found <a href="https://kb.tableau.com/articles/HowTo/how-to-use-legends-as-filters-in-a-dashboard">here.</a>
 				</p>
 		</section>
 		<section id="citations">
 			<h2>4. Citations</h2>
 			<ul id="cited">
-			<li><span>Chicago travel guide | U.S. News Travel.</span>(n.d.). Retrieved February 10, 2023, from https://travel.usnews.com/chicago_il/</l1> 
+			<li><span>Chicago travel guide | U.S. News Travel.</span> (n.d.). Retrieved February 10, 2023, from https://travel.usnews.com/chicago_il/</l1> 
 			<li>Burrows, M. (2021, October 8).<span> May 17 is National Bike to Work Day.</span> Census.gov. Retrieved February 1, 2023, from
 			https://www.census.gov/library/stories/2019/05/younger-workers-in-cities-more-likely-to-bike-to-work.html</li>
 			<li><span>Data.org.</span> Climate. (n.d.). Retrieved February 2, 2023, from
